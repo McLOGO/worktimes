@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=no">
+    <title>工作時數試算系統</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #eef2ff;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --gray: #6b7280;
+            --light-gray: #f3f4f6;
+            --border: #e5e7eb;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        
+        body { background-color: #f8fafc; color: var(--dark); padding: 20px; min-height: 100vh; }
+        
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; max-width: 1350px; margin: 0 auto; }
+
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border); }
+        h1 { text-align: center; margin-bottom: 25px; color: var(--primary); font-size: 1.75rem; }
+        h2 { margin-bottom: 20px; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; color: var(--primary); }
+
+        .setup-group { margin-bottom: 15px; }
+        label { font-size: 0.875rem; font-weight: 600; color: var(--gray); display: block; margin-bottom: 6px; }
+        
+        select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; background: white; transition: all 0.2s; -webkit-appearance: none; appearance: none; }
+        select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+        select:disabled { background: #e2e8f0; color: #64748b; cursor: not-allowed; border-color: #cbd5e1; }
+
+        .cal-header { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; }
+        .cal-btn { background: var(--light-gray); border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: 0.2s; }
+        .cal-btn:hover { background: var(--border); }
+        
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
+        .weekday { font-weight: 600; color: var(--gray); padding: 6px 0; font-size: 0.85rem; }
+        
+        .day { padding: 14px 0; border-radius: 8px; cursor: pointer; font-size: 0.95rem; user-select: none; transition: 0.2s; background: var(--light-gray); position: relative; min-height: 48px; display: flex; align-items: center; justify-content: center; }
+        .day:hover { background: var(--border); }
+        .day.empty { background: transparent; cursor: default; }
+        .day.selected { background: var(--primary) !important; color: white !important; font-weight: bold; }
+        
+        .day.has-record { background: #e2e8f0; color: #64748b; font-weight: 500; }
+        .day.has-record::after { content: ''; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background: var(--primary); border-radius: 50%; }
+
+        .info-placeholder { background: #fffbeb; border: 1px dashed #fef3c7; color: #b45309; padding: 15px; border-radius: 8px; text-align: center; font-size: 0.9rem; margin-top: 20px; line-height: 1.5; }
+
+        .timeline-modal { background: var(--primary-light); border: 2px solid var(--primary); padding: 20px; border-radius: 10px; margin-top: 20px; display: none; }
+        .timeline-container { position: relative; margin: 15px 0 25px 0; }
+        
+        .segment-block { background: white; border-left: 4px solid var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        
+        .range-slider { width: 100%; -webkit-appearance: none; appearance: none; background: #cbd5e1; height: 8px; border-radius: 4px; outline: none; margin: 15px 0; }
+        .range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 26px; height: 26px; border-radius: 50%; background: var(--primary); cursor: pointer; transition: 0.1s; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        
+        .timeline-scale { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--gray); padding: 0 5px; margin-top: -5px; }
+        .time-preview { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border); font-weight: bold; margin-bottom: 12px; font-size: 0.9rem; flex-wrap: wrap; gap: 5px; }
+
+        .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: background 0.2s; -webkit-tap-highlight-color: transparent; }
+        .btn-submit:hover { background: #4338ca; }
+        
+        .summary-box { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px; }
+        .stat-card { background: var(--primary-light); padding: 12px 4px; border-radius: 8px; text-align: center; border: 1px solid #c7d2fe; }
+        .stat-card.month-total { background: #ecfdf5; border-color: #a7f3d0; color: var(--success); }
+        .stat-card.official-days { background: #fffbeb; border-color: #fef3c7; color: #d97706; }
+        .stat-card.weekly-hours { background: #f5f3ff; border-color: #ddd6fe; color: #6d28d9; }
+        .stat-card.required-hours { background: #f0fdfa; border-color: #ccfbf1; color: #0d9488; }
+        
+        .stat-label { font-size: 0.7rem; font-weight: 600; color: var(--gray); margin-bottom: 4px; display: block; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+        .stat-card.month-total .stat-label { color: var(--success); }
+        .stat-card.official-days .stat-label { color: #b45309; }
+        .stat-card.weekly-hours .stat-label { color: #7c3aed; }
+        .stat-card.required-hours .stat-label { color: #0f766e; }
+        .stat-num { font-size: 1.1rem; font-weight: bold; }
+        
+        .table-wrapper { overflow-x: auto; max-height: 450px; border: 1px solid var(--border); border-radius: 8px; background: white; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; min-width: 500px; }
+        th, td { padding: 14px 10px; border-bottom: 1px solid var(--border); }
+        th { background: var(--light-gray); position: sticky; top: 0; z-index: 1; font-weight: 600; color: #374151; }
+        .split-badge { background: #ffedd5; color: #ea580c; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        
+        .action-btns { display: flex; gap: 6px; }
+        .btn-action-edit { background: #3b82f6; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
+        .btn-delete { background: var(--danger); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
+
+        @media (max-width: 1250px) {
+            .summary-box { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        }
+
+        @media (max-width: 900px) {
+            .dashboard { grid-template-columns: 1fr; gap: 20px; }
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            h1 { font-size: 1.5rem; margin-bottom: 15px; }
+            .card { padding: 15px; border-radius: 10px; }
+            h2 { font-size: 1.1rem; margin-bottom: 15px; }
+            
+            .calendar-grid { gap: 4px; }
+            .day { padding: 10px 0; font-size: 0.85rem; min-height: 42px; border-radius: 6px; }
+            .weekday { font-size: 0.75rem; padding: 4px 0; }
+            .day.has-record::after { width: 4px; height: 4px; bottom: 3px; }
+
+            .summary-box { grid-template-columns: 1fr; gap: 8px; }
+            .stat-card { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; text-align: left; }
+            .stat-label { margin-bottom: 0; font-size: 0.85rem; }
+            .stat-num { font-size: 1.25rem; }
+
+            .segment-block { padding: 12px; margin-bottom: 10px; }
+            .time-preview { flex-direction: column; align-items: flex-start; gap: 4px; padding: 8px 12px; }
+            .timeline-scale { font-size: 0.65rem; }
+            .range-slider::-webkit-slider-thumb { width: 28px; height: 28px; }
+
+            .action-btns { flex-direction: column; gap: 4px; width: 100%; }
+            .btn-action-edit, .btn-delete { width: 100%; text-align: center; padding: 8px; font-size: 0.85rem; }
+            th, td { padding: 10px 6px; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>📊 工作時數試算系統</h1>
+
+<div class="dashboard">
+    <div class="card">
+        <h2>📅 1. 選擇排班與日期</h2>
+        
+        <div class="setup-group">
+            <label for="rotationType">第一步：選擇排班輪值類型</label>
+            <select id="rotationType" onchange="handleRotationChange()">
+                <option value="custom">🙋‍♂️ 自訂 / 不定時值班 (手動自由多選)</option>
+                <option value="office">🏢 辦事處工作時間 (澳門公共工作日)</option>
+                <option value="2">🔄 每2天一個輪值</option>
+                <option value="3">🔁 每3天一個輪值</option>
+                <option value="4">🔂 每4天一個輪值</option>
+            </select>
+        </div>
+
+        <label>第二步：在下方日曆點擊日期</label>
+        <div class="cal-header">
+            <button class="cal-btn" onclick="moveMonth(-1)">◀ 上個月</button>
+            <span id="calendarTitle" style="font-weight: bold;"></span>
+            <button class="cal-btn" onclick="moveMonth(1)">下個月 ▶</button>
+        </div>
+
+        <div class="calendar-grid" id="calendarGrid">
+            </div>
+
+        <div class="info-placeholder" id="infoPlaceholder">
+            💡 請先在上方日曆「點擊選取日期」，系統將會自動彈出時間軸輸入界面！
+        </div>
+
+        <div class="timeline-modal" id="timelineModal">
+            <h2 id="modalTitle">⏰ 2. 設定滑動時間軸</h2>
+            
+            <div class="setup-group" id="segmentCountWrapper" style="margin-top: 10px; margin-bottom: 20px;">
+                <label for="segmentCount" style="color: var(--primary);">請選擇單日班次分段數：</label>
+                <select id="segmentCount" onchange="handleSegmentCountChange()">
+                    <option value="1">1 段時間 (常規單一班次)</option>
+                    <option value="2">2 段時間 (分段班 / 中斷午休班)</option>
+                    <option value="3">3 段時間 (多段複合排班)</option>
+                </select>
+            </div>
+            
+            <p style="font-size:0.85rem; color:var(--gray); margin-bottom:15px;">工時套用詳情：</p>
+            
+            <div class="timeline-container">
+                
+                <div id="segmentBlock1" class="segment-block">
+                    <h4 id="segTitle1" style="color: var(--primary); margin-bottom: 8px;">時間段 ①</h4>
+                    <div class="time-preview">
+                        <div>上班：<span id="lblStart1" style="color:var(--primary)">09:00</span></div>
+                        <div>下班：<span id="lblEnd1" style="color:var(--danger)">13:00</span></div>
+                        <div>小計：<span id="lblDuration1">4.0</span> 小時</div>
+                    </div>
+                    <label>🟢 拖曳設定【上班時間】</label>
+                    <input type="range" id="sliderStart1" class="range-slider" min="0" max="39" step="0.5" value="9" oninput="syncSliders()">
+                    <label>🔴 拖曳設定【下班時間】</label>
+                    <input type="range" id="sliderEnd1" class="range-slider" min="0" max="39" step="0.5" value="13" oninput="syncSliders()">
+                </div>
+
+                <div id="segmentBlock2" class="segment-block" style="display: none;">
+                    <h4 style="color: #2563eb; margin-bottom: 8px;">時間段 ②</h4>
+                    <div class="time-preview">
+                        <div>上班：<span id="lblStart2" style="color:var(--primary)">14:30</span></div>
+                        <div>下班：<span id="lblEnd2" style="color:var(--danger)">18:30</span></div>
+                        <div>小計：<span id="lblDuration2">4.0</span> 小時</div>
+                    </div>
+                    <label>🟢 拖曳設定【上班時間】</label>
+                    <input type="range" id="sliderStart2" class="range-slider" min="0" max="39" step="0.5" value="14.5" oninput="syncSliders()">
+                    <label>🔴 拖曳設定【下班時間】</label>
+                    <input type="range" id="sliderEnd2" class="range-slider" min="0" max="39" step="0.5" value="18.5" oninput="syncSliders()">
+                </div>
+
+                <div id="segmentBlock3" class="segment-block" style="display: none;">
+                    <h4 style="color: #7c3aed; margin-bottom: 8px;">時間段 ③</h4>
+                    <div class="time-preview">
+                        <div>上班：<span id="lblStart3" style="color:var(--primary)">19:00</span></div>
+                        <div>下班：<span id="lblEnd3" style="color:var(--danger)">22:00</span></div>
+                        <div>小計：<span id="lblDuration3">3.0</span> 小時</div>
+                    </div>
+                    <label>🟢 拖曳設定【上班時間】</label>
+                    <input type="range" id="sliderStart3" class="range-slider" min="0" max="39" step="0.5" value="19" oninput="syncSliders()">
+                    <label>🔴 拖曳設定【下班時間】</label>
+                    <input type="range" id="sliderEnd3" class="range-slider" min="0" max="39" step="0.5" value="22" oninput="syncSliders()">
+                </div>
+
+                <div class="timeline-scale">
+                    <span>當日 00:00</span>
+                    <span>12:00</span>
+                    <span>跨日 00:00</span>
+                    <span>翌日</span>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button id="btnSubmit" class="btn-submit" onclick="submitRecords()">確認並寫入工時系統</button>
+                <button id="btnCancelEdit" class="btn-submit" style="background: var(--gray); display: none;" onclick="exitEditMode()">取消修改</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📊 3. 工時統計看板 (<span id="summaryMonthLabel">當月</span>)</h2>
+        
+        <div class="summary-box">
+            <div class="stat-card month-total">
+                <span class="stat-label">當月試算總工時</span>
+                <div class="stat-num"><span id="totalMonthHours">0.0</span>h</div>
+            </div>
+            <div class="stat-card required-hours">
+                <span class="stat-label">應滿足工時</span>
+                <div class="stat-num"><span id="totalRequiredHours">0.0</span>h</div>
+            </div>
+            <div class="stat-card weekly-hours">
+                <span class="stat-label">每周工作時數</span>
+                <div class="stat-num"><span id="avgWeeklyHours">0.0</span>h</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">實質出勤</span>
+                <div class="stat-num"><span id="totalAllDays">0</span>天</div>
+            </div>
+            <div class="stat-card official-days">
+                <span class="stat-label">官方工作日</span>
+                <div class="stat-num"><span id="totalWorkingDays">0.0</span>天</div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size:0.95rem; color:var(--gray);">📋 詳細工時明細紀錄</h3>
+            <button class="cal-btn" style="font-size:0.75rem; color:var(--danger); padding: 6px 12px;" onclick="clearAll()">清空全部</button>
+        </div>
+        
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>計算日期</th>
+                        <th>上班</th>
+                        <th>下班</th>
+                        <th>工時</th>
+                        <th>類型</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="recordTableBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let records = [];
+    let editingRecordId = null; 
+
+    try {
+        let localData = JSON.parse(localStorage.getItem('work_records'));
+        if (Array.isArray(localData)) {
+            records = localData.filter(r => r && typeof r === 'object' && typeof r.date === 'string' && typeof r.startVal === 'number');
+        }
+    } catch(e) {
+        records = [];
+    }
+
+    let selectedDates = []; 
+    let currentDate = new Date(); 
+
+    const MACAU_HOLIDAYS_2026 = [
+        "2026-01-01", "2026-02-17", "2026-02-18", "2026-02-19", "2026-04-03",
+        "2026-04-04", "2026-05-01", "2026-05-24", "2026-06-19", "2026-10-01",
+        "2026-10-02", "2026-10-19", "2026-11-02", "2026-12-08", "2026-12-20",
+        "2026-12-21", "2026-12-24", "2026-12-25"
+    ];
+
+    const MACAU_HALF_DAYS_2026 = [ "2026-02-16", "2026-12-31" ];
+
+    function createLocalDate(year, month, day) {
+        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 0, 0, 0, 0);
+    }
+
+    // --- 日曆核心邏輯 ---
+    function renderCalendar() {
+        const grid = document.getElementById('calendarGrid');
+        const title = document.getElementById('calendarTitle');
+        if (!grid || !title) return;
+        
+        grid.innerHTML = '';
+
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        title.innerText = `${year} 年 ${month + 1} 月`;
+
+        const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+        weekdays.forEach(w => {
+            const el = document.createElement('div');
+            el.className = 'weekday';
+            el.innerText = w;
+            grid.appendChild(el);
+        });
+
+        const firstDayIndex = new Date(year, month, 1).getDay();
+        const totalDays = new Date(year, month + 1, 0).getDate();
+
+        for (let i = 0; i < firstDayIndex; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'day empty';
+            grid.appendChild(emptyCell);
+        }
+
+        for (let day = 1; day <= totalDays; day++) {
+            const dayCell = document.createElement('div');
+            dayCell.className = 'day';
+            dayCell.innerText = day;
+
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            
+            const hasData = records.some(r => r && r.date === dateStr);
+            if (hasData) {
+                dayCell.classList.add('has-record');
+            }
+
+            if (selectedDates.includes(dateStr)) {
+                dayCell.classList.add('selected');
+            }
+
+            dayCell.onclick = () => handleDateClick(year, month + 1, day, dateStr);
+            grid.appendChild(dayCell);
+        }
+    }
+
+    function moveMonth(dir) {
+        currentDate.setMonth(currentDate.getMonth() + dir);
+        selectedDates = []; 
+        exitEditMode();
+    }
+
+    // --- 排班多選與輪班鎖定邏輯 ---
+    function handleDateClick(year, month, day, dateStr) {
+        if (editingRecordId !== null) return; 
+
+        const rotation = document.getElementById('rotationType').value;
+
+        if (rotation === 'custom') {
+            const idx = selectedDates.indexOf(dateStr);
+            if (idx > -1) selectedDates.splice(idx, 1);
+            else selectedDates.push(dateStr);
+        } 
+        else if (rotation === 'office') {
+            selectedDates = [];
+            const totalDaysInMonth = new Date(year, month, 0).getDate();
+            for (let d = 1; d <= totalDaysInMonth; d++) {
+                const loopDate = createLocalDate(year, month, d);
+                const dayOfWeek = loopDate.getDay();
+                const loopDateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                if (dayOfWeek !== 0 && dayOfWeek !== 6 && !MACAU_HOLIDAYS_2026.includes(loopDateStr)) {
+                    selectedDates.push(loopDateStr);
+                }
+            }
+        }
+        else {
+            selectedDates = [];
+            const interval = parseInt(rotation);
+            const totalDaysInMonth = new Date(year, month, 0).getDate();
+            for (let d = 1; d <= totalDaysInMonth; d++) {
+                if ((d - day) % interval === 0) {
+                    const loopDateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    selectedDates.push(loopDateStr);
+                }
+            }
+        }
+        
+        renderCalendar();
+        toggleTimelineModal();
+    }
+
+    function handleRotationChange() {
+        selectedDates = []; 
+        renderCalendar();
+        toggleTimelineModal();
+    }
+
+    function handleSegmentCountChange() {
+        const count = parseInt(document.getElementById('segmentCount').value);
+        document.getElementById('segmentBlock1').style.display = 'block';
+        document.getElementById('segmentBlock2').style.display = count >= 2 ? 'block' : 'none';
+        document.getElementById('segmentBlock3').style.display = count === 3 ? 'block' : 'none';
+        syncSliders();
+    }
+
+    function toggleTimelineModal() {
+        const modal = document.getElementById('timelineModal');
+        const placeholder = document.getElementById('infoPlaceholder');
+        const countSpan = document.getElementById('selectedDaysCount');
+        const rotationSelect = document.getElementById('rotationType');
+        
+        if (selectedDates.length > 0) {
+            modal.style.display = 'block';
+            placeholder.style.display = 'none';
+            countSpan.innerText = selectedDates.length;
+            if (editingRecordId === null) {
+                rotationSelect.disabled = true; 
+                handleSegmentCountChange();
+            }
+        } else {
+            if (editingRecordId === null) {
+                modal.style.display = 'none';
+                placeholder.style.display = 'block';
+                rotationSelect.disabled = false; 
+            }
+        }
+    }
+
+    // --- 開啟單日獨立修改模式 ---
+    function startEdit(id) {
+        const target = records.find(r => r && r.id === id);
+        if (!target) return;
+
+        editingRecordId = id; 
+        selectedDates = [target.date]; 
+
+        document.getElementById('modalTitle').innerText = `✏️ 修改工時【${target.date}】`;
+        document.getElementById('segmentCountWrapper').style.display = 'none'; 
+        document.getElementById('segmentCount').value = "1";
+        handleSegmentCountChange();
+
+        document.getElementById('sliderStart1').value = target.startVal;
+        document.getElementById('sliderEnd1').value = target.endVal;
+        document.getElementById('segTitle1').innerText = "調整此段時間";
+
+        document.getElementById('btnSubmit').innerText = "💾 儲存修改";
+        document.getElementById('btnCancelEdit').style.display = "block";
+        document.getElementById('rotationType').disabled = true;
+
+        renderCalendar();
+        toggleTimelineModal();
+        syncSliders();
+        
+        document.getElementById('timelineModal').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // --- 退出修改模式 ---
+    function exitEditMode() {
+        editingRecordId = null;
+        selectedDates = [];
+        
+        document.getElementById('modalTitle').innerText = "⏰ 2. 設定滑動時間軸";
+        document.getElementById('segmentCountWrapper').style.display = 'block';
+        document.getElementById('segTitle1').innerText = "時間段 ①";
+        document.getElementById('btnSubmit').innerText = "確認並寫入工時系統";
+        document.getElementById('btnCancelEdit').style.display = "none";
+        document.getElementById('rotationType').disabled = false;
+
+        renderCalendar();
+        toggleTimelineModal();
+        updateDashboard();
+    }
+
+    // --- 時間軸滑塊同步 ---
+    function syncSliders() {
+        for (let i = 1; i <= 3; i++) {
+            let startVal = parseFloat(document.getElementById('sliderStart' + i).value);
+            let endVal = parseFloat(document.getElementById('sliderEnd' + i).value);
+
+            if (endVal <= startVal) {
+                endVal = startVal + 0.5;
+                document.getElementById('sliderEnd' + i).value = endVal;
+            }
+
+            const startInfo = parseSliderTime(startVal);
+            const endInfo = parseSliderTime(endVal);
+
+            document.getElementById('lblStart' + i).innerText = startInfo.timeStr;
+            document.getElementById('lblEnd' + i).innerText = `${endInfo.dayLabel === '翌日' ? '翌日 ' : ''}${endInfo.timeStr}`;
+            document.getElementById('lblDuration' + i).innerText = (endVal - startVal).toFixed(1);
+        }
+    }
+
+    function parseSliderTime(val) {
+        const isNextDay = val >= 24;
+        const actualHour = isNextDay ? val - 24 : val;
+        const h = Math.floor(actualHour);
+        const m = (actualHour % 1) === 0.5 ? '30' : '00';
+        return {
+            dayLabel: isNextDay ? '翌日' : '當日',
+            timeStr: `${String(h).padStart(2, '0')}:${m}`
+        };
+    }
+
+    // --- 確認並寫入與智慧微調覆蓋 ---
+    function submitRecords() {
+        const startVal = parseFloat(document.getElementById('sliderStart1').value);
+        const endVal = parseFloat(document.getElementById('sliderEnd1').value);
+
+        if (editingRecordId !== null) {
+            const parts = selectedDates[0].split('-');
+            const baseDate = createLocalDate(parts[0], parts[1], parts[2]);
+            const newStartMs = baseDate.getTime() + startVal * 3600000;
+            const newEndMs = baseDate.getTime() + endVal * 3600000;
+
+            let hasCollision = records.some(r => {
+                if (!r || r.id === editingRecordId) return false; 
+                const rParts = r.date.split('-');
+                const rBaseDate = createLocalDate(rParts[0], rParts[1], rParts[2]);
+                const rStartMs = rBaseDate.getTime() + r.startVal * 3600000;
+                const rEndMs = rBaseDate.getTime() + r.endVal * 3600000;
+                return Math.max(newStartMs, rStartMs) < Math.min(newEndMs, rEndMs);
+            });
+
+            if (hasCollision) {
+                alert("⚠️【修改失敗】新時間段與該日其他既存的工時重疊！");
+                return;
+            }
+
+            let targetObj = records.find(r => r.id === editingRecordId);
+            if (targetObj) {
+                targetObj.startVal = startVal;
+                targetObj.endVal = endVal;
+            }
+            
+            saveToLocalStorage();
+            exitEditMode(); 
+            return;
+        }
+
+        const segmentCount = parseInt(document.getElementById('segmentCount').value);
+        let currentFormSegments = [];
+        for (let i = 1; i <= segmentCount; i++) {
+            currentFormSegments.push({
+                startVal: parseFloat(document.getElementById('sliderStart' + i).value),
+                endVal: parseFloat(document.getElementById('sliderEnd' + i).value),
+                index: i
+            });
+        }
+
+        let internalOverlap = false;
+        let sortedForm = [...currentFormSegments].sort((a, b) => a.startVal - b.startVal);
+        for (let i = 0; i < sortedForm.length - 1; i++) {
+            if (sortedForm[i].endVal > sortedForm[i+1].startVal) {
+                internalOverlap = true;
+            }
+        }
+        if (internalOverlap) {
+            alert("⚠️【設定錯誤】拉動的幾組時間段之間存在自我時間交疊，請重新調整！");
+            return;
+        }
+
+        let skippedDates = [];
+        let cleanRecordsToPush = [];
+
+        selectedDates.forEach(dateStr => {
+            const parts = dateStr.split('-');
+            const baseDate = createLocalDate(parts[0], parts[1], parts[2]);
+            let dateHasCollision = false;
+            let tempDatePushes = [];
+
+            currentFormSegments.forEach(formSeg => {
+                const newStartMs = baseDate.getTime() + formSeg.startVal * 3600000;
+                const newEndMs = baseDate.getTime() + formSeg.endVal * 3600000;
+
+                let segmentHasCollision = records.some(r => {
+                    if (!r) return false;
+                    const rParts = r.date.split('-');
+                    const rBaseDate = createLocalDate(rParts[0], rParts[1], rParts[2]);
+                    const rStartMs = rBaseDate.getTime() + r.startVal * 3600000;
+                    const rEndMs = rBaseDate.getTime() + r.endVal * 3600000;
+                    return Math.max(newStartMs, rStartMs) < Math.min(newEndMs, rEndMs);
+                });
+
+                if (segmentHasCollision) {
+                    dateHasCollision = true;
+                } else {
+                    tempDatePushes.push({
+                        id: Date.now() + Math.random(),
+                        date: dateStr,
+                        startVal: formSeg.startVal,
+                        endVal: formSeg.endVal
+                    });
+                }
+            });
+
+            if (dateHasCollision) {
+                skippedDates.push(dateStr);
+            } else {
+                cleanRecordsToPush.push(...tempDatePushes);
+            }
+        });
+
+        if (skippedDates.length > 0) {
+            alert(`⚠️ 【攔截時間段重疊】\n以下日期因發生時間交疊衝突，已自動整日跳過：\n\n${skippedDates.join('\n')}`);
+        }
+
+        if (cleanRecordsToPush.length === 0) {
+            selectedDates = [];
+            document.getElementById('rotationType').disabled = false; 
+            renderCalendar();
+            toggleTimelineModal();
+            return;
+        }
+
+        records.push(...cleanRecordsToPush);
+        saveToLocalStorage();
+        selectedDates = [];
+        document.getElementById('rotationType').disabled = false; 
+        renderCalendar();
+        toggleTimelineModal();
+        updateDashboard(); 
+    }
+
+    // --- 看板更新與明細生成 ---
+    function updateDashboard() {
+        const tbody = document.getElementById('recordTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        const currentYearStr = currentDate.getFullYear();
+        const currentMonthStr = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const targetYearMonth = `${currentYearStr}-${currentMonthStr}`;
+        
+        document.getElementById('summaryMonthLabel').innerText = `${currentYearStr}年${currentMonthStr}月`;
+
+        // 統計官方標準工作日
+        let officialWorkingDays = 0;
+        const totalDaysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+        for (let d = 1; d <= totalDaysInMonth; d++) {
+            const loopDate = createLocalDate(currentDate.getFullYear(), currentDate.getMonth() + 1, d);
+            const dayOfWeek = loopDate.getDay();
+            const loopDateStr = `${currentYearStr}-${currentMonthStr}-${String(d).padStart(2, '0')}`;
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                if (MACAU_HOLIDAYS_2026.includes(loopDateStr)) {} 
+                else if (MACAU_HALF_DAYS_2026.includes(loopDateStr)) { officialWorkingDays += 0.5; } 
+                else { officialWorkingDays += 1.0; }
+            }
+        }
+        document.getElementById('totalWorkingDays').innerText = officialWorkingDays.toFixed(1);
+
+        // 展開明細
+        let displayItems = [];
+        records.forEach(r => {
+            if (!r || !r.date) return;
+            const parts = r.date.split('-');
+            if (parts.length !== 3) return;
+            
+            if (r.startVal < 24 && r.endVal <= 24) {
+                displayItems.push({
+                    id: r.id, date: r.date, originDate: r.date,
+                    start: formatValToTime(r.startVal), end: formatValToTime(r.endVal),
+                    hours: r.endVal - r.startVal, note: '正常班'
+                });
+            } 
+            else if (r.startVal < 24 && r.endVal > 24) {
+                displayItems.push({
+                    id: r.id, date: r.date, originDate: r.date,
+                    start: formatValToTime(r.startVal), end: '24:00',
+                    hours: 24 - r.startVal, note: '跨日拆分'
+                });
+
+                const nextDate = createLocalDate(parts[0], parts[1], parts[2]);
+                nextDate.setDate(nextDate.getDate() + 1);
+                displayItems.push({
+                    id: r.id, date: formatDateString(nextDate), originDate: r.date,
+                    start: '00:00', end: formatValToTime(r.endVal - 24),
+                    hours: r.endVal - 24, note: '跨日拆分'
+                });
+            } 
+            else if (r.startVal >= 24) {
+                const nextDate = createLocalDate(parts[0], parts[1], parts[2]);
+                nextDate.setDate(nextDate.getDate() + 1);
+                displayItems.push({
+                    id: r.id, date: formatDateString(nextDate), originDate: r.date,
+                    start: formatValToTime(r.startVal - 24), end: formatValToTime(r.endVal - 24),
+                    hours: r.endVal - r.startVal, note: '翌日值班'
+                });
+            }
+        });
+
+        // 二維排序
+        displayItems.sort((a, b) => {
+            if (a.date !== b.date) return new Date(a.date.replace(/-/g, '/')) - new Date(b.date.replace(/-/g, '/'));
+            return a.start.localeCompare(b.start);
+        });
+
+        let monthTotalHours = 0;
+        let activeDaysInMonth = new Set(); 
+
+        displayItems.forEach(item => {
+            if (item.date.startsWith(targetYearMonth)) {
+                monthTotalHours += item.hours;
+                
+                // 🚀【天數精準修復核對點】：去重集合添加主排班源頭日 originDate
+                activeDaysInMonth.add(item.originDate); 
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.date}</td>
+                    <td>${item.start}</td>
+                    <td>${item.end}</td>
+                    <td><strong>${item.hours.toFixed(1)}h</strong></td>
+                    <td><span class="${item.note !== '正常班' ? 'split-badge' : ''}">${item.note}</span></td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn-action-edit" onclick="startEdit(${item.id})">修改</button>
+                            <button class="btn-delete" onclick="deleteRecord(${item.id})">刪除</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+        });
+
+        if (tbody.children.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--gray); padding: 30px 10px;">本月尚無任何工時資料</td></tr>`;
+        }
+
+        // 計算每周工作時數
+        let avgWeeklyHours = 0;
+        if (officialWorkingDays > 0) {
+            avgWeeklyHours = (monthTotalHours / officialWorkingDays) * 5;
+        }
+
+        // 計算應滿足工時
+        let totalRequiredHours = (44.1 * officialWorkingDays) / 5;
+
+        // 渲染統計數據
+        document.getElementById('totalMonthHours').innerText = monthTotalHours.toFixed(1);
+        document.getElementById('totalRequiredHours').innerText = totalRequiredHours.toFixed(1);
+        document.getElementById('avgWeeklyHours').innerText = avgWeeklyHours.toFixed(1);
+        document.getElementById('totalAllDays').innerText = activeDaysInMonth.size;
+    }
+
+    function formatValToTime(val) {
+        const h = Math.floor(val);
+        const m = (val % 1) === 0.5 ? '30' : '00';
+        return `${String(h).padStart(2, '0')}:${m}`;
+    }
+
+    function formatDateString(dateObj) {
+        return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+    }
+
+    // 刪除紀錄
+    function deleteRecord(id) {
+        if(editingRecordId === id) exitEditMode(); 
+        records = records.filter(r => r && r.id !== id);
+        saveToLocalStorage();
+        renderCalendar();
+        updateDashboard();
+    }
+
+    function clearAll() {
+        if(confirm("確定要清空所有歷史工時紀錄嗎？")) {
+            records = [];
+            saveToLocalStorage();
+            exitEditMode();
+        }
+    }
+
+    function saveToLocalStorage() {
+        localStorage.setItem('work_records', JSON.stringify(records));
+    }
+
+    // 立即初始化自執行
+    renderCalendar();
+    updateDashboard();
+    syncSliders();
+</script>
+
+</body>
+</html>
