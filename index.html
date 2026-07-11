@@ -6,152 +6,259 @@
     <title>工作時數試算系統</title>
     <style>
         /* ==========================================================================
-           🎨 澳門海關專屬徽章色彩系統 (Deep Navy, Light Cyan, Sea Mint Green)
+           🎨 澳門海關專屬徽章色彩系統 (全新現代化調色盤)
            ========================================================================== */
         :root {
             --primary: #1b365d;         /* 澳門海關徽章深藍 (主色調) */
-            --primary-light: #e0f2fe;   /* 澳門海關清透淺藍 (選取與高亮區) */
+            --primary-hover: #122548;   /* 深藍懸停色 */
+            --primary-light: #f0f7ff;   /* 極輕透藍底色 */
+            --primary-badge: #e0f2fe;   /* 亮眼選取襯色 */
             --customs-green: #0fa573;   /* 澳門特區公共行政特徵淺綠 */
-            --customs-green-light: #e6f4ea; /* 淺綠專用背景襯色 */
+            --customs-green-light: #ecfdf5; /* 淺綠專用背景襯色 */
             --success: #0fa573;
-            --danger: #d32f2f;          /* 刪除與全天假期紅 */
-            --warning: #d97706;         /* 半天假橙黃 / 清空當月 */
-            --dark: #1e2937;
-            --gray: #64748b;
-            --light-gray: #f1f5f9;      /* 平滑底色 */
-            --border: #cbd5e1;
+            --danger: #ef4444;          /* 刪除與全天假期紅 */
+            --danger-light: #fef2f2;    /* 全天假期襯底色 */
+            --warning: #f59e0b;         /* 半天假橙黃 / 清空當月 */
+            --warning-light: #fffbeb;   /* 半天假襯底色 */
+            --dark: #0f172a;            /* 現代深字體色 (高對比度) */
+            --gray: #64748b;            /* 次要說明字體色 */
+            --light-gray: #f8fafc;      /* 區塊平滑底色 */
+            --border: #e2e8f0;          /* 輕薄細緻邊框 */
             
-            /* 星期六專用：強化高對比寶石藍 */
-            --sat-bg: #dbeafe;
-            --sat-text: #1e40af;
-            /* 星期日專用：雅緻紅色 */
+            /* 星期六/日 專用舒適配色 */
+            --sat-bg: #eff6ff;
+            --sat-text: #1d4ed8;
             --sun-bg: #fff5f5;
             --sun-text: #c53030;
         }
 
+        /* 全局排版重塑 */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: #f1f5f9; color: var(--dark); padding: 30px; min-height: 100vh; -webkit-font-smoothing: antialiased; }
         
-        body { background-color: #f4f7fa; color: var(--dark); padding: 20px; min-height: 100vh; }
+        h1 { text-align: center; margin-bottom: 30px; color: var(--primary); font-size: 2rem; letter-spacing: 1.5px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 12px; }
         
-        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; max-width: 1350px; margin: 0 auto; }
+        /* 儀表板雙欄佈局 */
+        .dashboard { display: grid; grid-template-columns: 1.1fr 1.2fr; gap: 30px; max-width: 1440px; margin: 0 auto; align-items: start; }
 
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(27, 54, 93, 0.05); border: 1px solid var(--border); }
-        
-        h1 { text-align: center; margin-bottom: 25px; color: var(--primary); font-size: 1.75rem; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        h2 { margin-bottom: 20px; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; color: var(--primary); border-bottom: 2px solid var(--primary-light); padding-bottom: 8px; }
+        /* 卡片設計陰影與高質感圓角 */
+        .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(27, 54, 93, 0.05), 0 4px 12px -5px rgba(0, 0, 0, 0.02); border: 1px solid var(--border); }
+        h2 { margin-bottom: 22px; font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; gap: 10px; color: var(--primary); border-bottom: 2px solid var(--primary-badge); padding-bottom: 10px; }
 
-        .setup-group { margin-bottom: 15px; }
-        label { font-size: 0.875rem; font-weight: 600; color: var(--gray); display: block; margin-bottom: 6px; }
+        /* 表單元素美化 */
+        .setup-group { margin-bottom: 20px; }
+        label { font-size: 0.875rem; font-weight: 600; color: var(--gray); display: block; margin-bottom: 8px; letter-spacing: 0.5px; }
         
-        select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; background: white; transition: all 0.2s; -webkit-appearance: none; appearance: none; color: var(--dark); }
-        select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
-        select:disabled { background: #e2e8f0; color: #64748b; cursor: not-allowed; border-color: #cbd5e1; }
+        select { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; font-size: 0.95rem; font-weight: 500; outline: none; background: var(--light-gray); color: var(--dark); transition: all 0.25s ease; cursor: pointer; }
+        select:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(27, 54, 93, 0.1); }
+        select:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; border-color: #cbd5e1; }
         
-        .w-full { width: 100%; }
+        /* 區隔線 */
+        .divider { height: 1px; background: var(--border); margin: 25px 0; }
 
-        .cal-header { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; gap: 8px; }
-        .cal-btn { background: var(--light-gray); border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.85rem; color: var(--primary); transition: 0.2s; border: 1px solid transparent; }
-        .cal-btn:hover { background: var(--primary-light); border-color: #bad7f2; }
-        .btn-today { background: var(--primary-light); color: var(--primary); border: 1px solid #bad7f2; }
-        .btn-today:hover { background: var(--primary); color: white; }
+        /* 日曆控制列 */
+        .cal-header { display: flex; justify-content: space-between; align-items: center; margin: 20px 0; gap: 10px; background: var(--light-gray); padding: 8px; border-radius: 10px; }
+        .cal-btn { background: white; border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.85rem; color: var(--primary); transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .cal-btn:hover { background: var(--primary-badge); border-color: #bad7f2; }
+        .btn-today { background: var(--primary); color: white; border: none; }
+        .btn-today:hover { background: var(--primary-hover); }
 
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
+        /* 日曆網格與日期單元格 */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; }
+        .weekday { font-weight: 700; color: var(--gray); padding: 8px 0; font-size: 0.85rem; }
+        .weekday.sat { color: var(--sat-text); background-color: var(--sat-bg); border-radius: 6px; }
+        .weekday.sun { color: var(--sun-text); background-color: var(--sun-bg); border-radius: 6px; }
         
-        .weekday { font-weight: 700; color: var(--gray); padding: 6px 0; font-size: 0.85rem; }
-        .weekday.sat { color: var(--sat-text); background-color: var(--sat-bg); border-radius: 4px; font-weight: bold; }
-        .weekday.sun { color: var(--sun-text); background-color: var(--sun-bg); border-radius: 4px; }
+        .day { padding: 16px 0; border-radius: 10px; cursor: pointer; font-size: 0.95rem; font-weight: 500; user-select: none; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); background: var(--light-gray); position: relative; min-height: 58px; display: flex; align-items: center; justify-content: center; color: var(--dark); border: 1px solid transparent; }
+        .day:hover { background: var(--primary-badge); color: var(--primary); font-weight: 700; transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .day.empty { background: transparent; cursor: default; border: none; box-shadow: none !important; transform: none !important; }
         
-        .day { padding: 14px 0; border-radius: 8px; cursor: pointer; font-size: 0.95rem; user-select: none; transition: 0.2s; background: var(--light-gray); position: relative; min-height: 54px; display: flex; align-items: center; justify-content: center; color: var(--dark); }
-        .day:hover { background: var(--primary-light); color: var(--primary); font-weight: bold; }
-        .day.empty { background: transparent; cursor: default; }
+        /* 週末高對比突出 */
+        .day.sat { background-color: var(--sat-bg); color: var(--sat-text); font-weight: 700; border: 1px solid rgba(29, 78, 216, 0.15); }
+        .day.sun { background-color: var(--sun-bg); color: var(--sun-text); font-weight: 500; }
         
-        /* 突顯星期六樣式 */
-        .day.sat { background-color: var(--sat-bg); color: var(--sat-text); font-weight: bold; border: 1px solid #bad7f2; }
-        .day.sun { background-color: var(--sun-bg); color: var(--sun-text); }
-        
-        /* 已排工時的高亮綠色寬版膠囊指示條 */
+        /* 寬版綠色膠囊工時指示條 */
         .day.has-record { position: relative; }
-        .day.has-record::after { content: ''; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 22px; height: 4px; background: var(--customs-green); border-radius: 2px; }
+        .day.has-record::after { content: ''; position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); width: 22px; height: 4px; background: var(--customs-green); border-radius: 2px; }
         
-        /* 假期基礎設定 */
-        .day.gov-holiday { color: var(--danger) !important; font-weight: bold; background: #fee2e2 !important; border: none; }
-        .day.gov-holiday::before { content: '假'; position: absolute; top: 2px; right: 4px; font-size: 0.65rem; color: var(--danger); font-weight: bold; }
-        .day.gov-half-holiday { color: #b45309 !important; font-weight: bold; background: #fef3c7 !important; border: none; }
-        .day.gov-half-holiday::before { content: '半'; position: absolute; top: 2px; right: 4px; font-size: 0.65rem; color: #b45309; font-weight: bold; }
+        /* 澳門假期標籤樣式 */
+        .day.gov-holiday { color: var(--danger) !important; font-weight: 700; background: var(--danger-light) !important; }
+        .day.gov-holiday::before { content: '假'; position: absolute; top: 3px; right: 5px; font-size: 0.65rem; color: var(--danger); font-weight: 900; }
+        .day.gov-half-holiday { color: #b45309 !important; font-weight: 700; background: var(--warning-light) !important; }
+        .day.gov-half-holiday::before { content: '半'; position: absolute; top: 3px; right: 5px; font-size: 0.65rem; color: #b45309; font-weight: 900; }
 
-        /* 將 selected 移至假期下方，確保深藍色擁有絕對優先級 */
-        .day.selected { background: var(--primary) !important; color: white !important; font-weight: bold; box-shadow: 0 2px 6px rgba(27, 54, 93, 0.3); border: none; }
-        /* 當被深藍色選取時，工時指示條聯動變成耀眼白色，確保視覺清晰 */
+        /* 已選取深藍色樣式 */
+        .day.selected { background: var(--primary) !important; color: white !important; font-weight: 700; box-shadow: 0 4px 12px rgba(27, 54, 93, 0.25); border-color: var(--primary); transform: translateY(-1px); }
         .day.selected.has-record::after { background: white !important; }
-
-        /* 解決高對比度辨識問題：當假期被選中變深藍底時，提亮右上角標籤文字 */
-        .day.selected.gov-holiday::before { color: #ff9999 !important; }
+        .day.selected.gov-holiday::before { color: #fca5a5 !important; }
         .day.selected.gov-half-holiday::before { color: #fde68a !important; }
 
-        .info-placeholder { background: #fffbeb; border: 1px dashed #fef3c7; color: #b45309; padding: 15px; border-radius: 8px; text-align: center; font-size: 0.9rem; margin-top: 20px; line-height: 1.5; }
-        .timeline-modal { background: var(--primary-light); border: 2px solid var(--primary); padding: 20px; border-radius: 10px; margin-top: 20px; display: none; }
-        .timeline-container { position: relative; margin: 15px 0 15px 0; }
+        /* 提示區塊 */
+        .info-placeholder { background: #fffbeb; border: 1px dashed #fcd34d; color: #b45309; padding: 18px; border-radius: 10px; text-align: center; font-size: 0.9rem; margin-top: 25px; line-height: 1.6; font-weight: 500; }
         
-        .segment-block { background: white; border-left: 4px solid var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        /* 時間範圍輸入抽屜/區域 */
+        .timeline-modal { background: var(--primary-light); border: 1px solid var(--border); padding: 25px; border-radius: 12px; margin-top: 25px; display: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.01); }
+        
+        /* 時間段模組化設計 */
+        .segment-block { background: white; border-left: 5px solid var(--primary); padding: 18px; border-radius: 8px; margin-bottom: 18px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
         .segment-block.seg-2 { border-left-color: #2563eb; }
         .segment-block.seg-3 { border-left-color: #7c3aed; }
+        .segment-block h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 10px; }
 
-        .picker-row { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
-        .picker-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .picker-label { font-size: 0.9rem; font-weight: bold; min-width: 60px; }
-        .select-combo { display: flex; align-items: center; gap: 4px; }
-        .select-combo span { font-weight: bold; color: var(--gray); }
-        .select-combo select { width: auto; padding: 8px; border-radius: 6px; border-color: var(--border); }
+        .picker-row { display: flex; flex-direction: column; gap: 14px; margin-top: 12px; }
+        .picker-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .picker-label { font-size: 0.9rem; font-weight: 700; min-width: 65px; }
+        .select-combo { display: flex; align-items: center; gap: 6px; }
+        .select-combo span { font-weight: 700; color: var(--gray); }
+        .select-combo select { width: auto; padding: 8px 12px; border-radius: 8px; background: white; font-size: 0.9rem; }
 
-        .time-preview { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border); font-weight: bold; margin-bottom: 12px; font-size: 0.9rem; flex-wrap: wrap; gap: 5px; }
+        .time-preview { display: flex; justify-content: space-between; align-items: center; background: var(--light-gray); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); font-weight: 700; margin-bottom: 12px; font-size: 0.9rem; }
 
-        .summary-box { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 20px; }
-        .stat-card { background: var(--primary-light); padding: 12px 4px; border-radius: 8px; text-align: center; border: 1px solid #bad7f2; color: var(--primary); }
-        .stat-card.month-total { background: var(--customs-green-light); border-color: #c6f6d5; color: var(--customs-green); }
-        .stat-card.official-days { background: #fffbeb; border-color: #fef3c7; color: #d97706; }
+        /* 數據統計看板樣式 */
+        .summary-box { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 16px 8px; border-radius: 12px; text-align: center; border: 1px solid var(--border); color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.01); transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); }
+        
+        .stat-card.month-total { background: var(--customs-green-light); border-color: #a7f3d0; color: var(--customs-green); }
+        .stat-card.required-hours { background: var(--primary-light); border-color: #bfdbfe; color: var(--primary); }
         .stat-card.weekly-hours { background: #f5f3ff; border-color: #ddd6fe; color: #6d28d9; }
-        .stat-card.required-hours { background: #e6fffa; border-color: #b2f5ea; color: #008080; }
+        .stat-card.official-days { background: var(--warning-light); border-color: #fde68a; color: #d97706; }
         
-        .stat-label { font-size: 0.7rem; font-weight: 600; color: var(--gray); margin-bottom: 4px; display: block; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-        .stat-card.month-total .stat-label { color: var(--customs-green); }
+        .stat-label { font-size: 0.75rem; font-weight: 700; color: var(--gray); margin-bottom: 6px; display: block; }
+        .stat-card.month-total .stat-label { color: #047857; }
+        .stat-card.required-hours .stat-label { color: var(--primary); }
+        .stat-card.weekly-hours .stat-label { color: #6d28d9; }
         .stat-card.official-days .stat-label { color: #b45309; }
-        .stat-card.weekly-hours .stat-label { color: #7c3aed; }
-        .stat-card.required-hours .stat-label { color: #006666; }
-        .stat-num { font-size: 1.15rem; font-weight: bold; }
         
-        .table-wrapper { overflow-x: auto; max-height: 450px; border: 1px solid var(--border); border-radius: 8px; background: white; -webkit-overflow-scrolling: touch; }
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; min-width: 550px; }
-        th, td { padding: 14px 10px; border-bottom: 1px solid var(--border); }
-        th { background: var(--light-gray); position: sticky; top: 0; z-index: 1; font-weight: 600; color: var(--primary); }
-        .split-badge { background: #ffedd5; color: #ea580c; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        .stat-num { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; }
         
-        .action-btns { display: flex; gap: 6px; }
-        .btn-action-edit { background: #3b82f6; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
-        .btn-delete { background: var(--danger); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
+        /* 數據表格美化 */
+        .table-wrapper { overflow-x: auto; max-height: 480px; border: 1px solid var(--border); border-radius: 12px; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; min-width: 580px; }
+        th, td { padding: 16px 14px; border-bottom: 1px solid var(--border); }
+        th { background: var(--light-gray); position: sticky; top: 0; z-index: 1; font-weight: 700; color: var(--primary); font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: 2px solid var(--border); }
         
-        .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
-        .btn-submit:hover { background: #122548; }
+        tbody tr { transition: background 0.15s ease; }
+        tbody tr:hover { background: rgba(27, 54, 93, 0.02); }
         
-        .btn-csv { background: var(--customs-green); color: white; font-size: 0.8rem; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-csv:hover { background: #0b8458; box-shadow: 0 2px 4px rgba(15,165,115,0.2); }
+        .split-badge { background: #ffedd5; color: #ea580c; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+        
+        /* 按鈕優化 */
+        .action-btns { display: flex; gap: 8px; }
+        .btn-action-edit { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: background 0.2s; }
+        .btn-action-edit:hover { background: #2563eb; }
+        .btn-delete { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: background 0.2s; }
+        .btn-delete:hover { background: #dc2626; }
+        
+        .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 1rem; transition: background 0.2s, transform 0.1s; box-shadow: 0 4px 6px rgba(27, 54, 93, 0.15); }
+        .btn-submit:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-submit:active { transform: translateY(0); }
+        
+        .btn-csv { background: var(--customs-green); color: white; font-size: 0.85rem; padding: 8px 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.2s; box-shadow: 0 2px 4px rgba(15,165,115,0.15); }
+        .btn-csv:hover { background: #0b8458; transform: translateY(-1px); }
 
-        @media (max-width: 1250px) { .summary-box { grid-template-columns: repeat(3, 1fr); gap: 10px; } }
-        @media (max-width: 900px) { .dashboard { grid-template-columns: 1fr; gap: 20px; } }
-        @media (max-width: 600px) {
-            body { padding: 10px; }
-            h1 { font-size: 1.5rem; margin-bottom: 15px; }
-            .card { padding: 15px; border-radius: 10px; }
-            .summary-box { grid-template-columns: 1fr; gap: 8px; }
-            .stat-card { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; text-align: left; }
+        /* ==========================================================================
+           📱 🌟 針對手機端 (900px以下) 的終極精簡、高密度二行流 App 樣式
+           ========================================================================== */
+        @media (max-width: 1200px) { .summary-box { grid-template-columns: repeat(3, 1fr); gap: 10px; } }
+        @media (max-width: 900px) {
+            body { padding: 12px; background-color: #f8fafc; }
+            h1 { font-size: 1.5rem; margin-bottom: 20px; }
+            .dashboard { grid-template-columns: 1fr; gap: 20px; }
+            .card { padding: 20px; border-radius: 14px; }
+            .summary-box { grid-template-columns: 1fr; gap: 10px; }
+            .stat-card { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; text-align: left; }
             .stat-label { margin-bottom: 0; font-size: 0.85rem; }
+            .stat-num { font-size: 1.3rem; }
             
             .picker-group { width: 100%; }
             .select-combo { width: 100%; display: grid; grid-template-columns: 2fr 1.2fr auto 1.2fr; gap: 6px; align-items: center; }
             .select-combo select { width: 100%; padding: 12px 4px; font-size: 0.95rem; text-align: center; }
+
+            /* 日曆小螢幕優化 */
+            .day { min-height: 52px; font-size: 0.9rem; }
+            .day.gov-holiday::before, .day.gov-half-holiday::before { font-size: 0.55rem; top: 2px; right: 3px; }
+            .day.has-record::after { width: 16px; height: 3.5px; bottom: 4px; }
+
+            /* 手機端底部抽屜時間設定區 */
+            .timeline-modal {
+                position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
+                background: white; border: none; border-top: 4px solid var(--primary);
+                border-radius: 24px 24px 0 0; box-shadow: 0 -10px 30px rgba(27, 54, 93, 0.18);
+                padding: 24px; max-height: 82vh; overflow-y: auto;
+                animation: slideUp 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+            /* 📋 🔥 手機版工時明細終極砍高瘦身：完美收建為 2 行高密度流線卡片 */
+            table, tbody, tr, td { display: block !important; }
+            thead { display: none !important; } 
             
-            .action-btns { flex-direction: column; gap: 4px; width: 100%; }
-            .btn-action-edit, .btn-delete { width: 100%; text-align: center; padding: 8px; }
-            th, td { padding: 10px 6px; font-size: 0.825rem; }
+            #recordTableBody tr {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                background: white !important;
+                border: 1px solid var(--border) !important;
+                border-radius: 12px !important; 
+                padding: 12px 14px !important; 
+                margin-bottom: 10px !important;
+                box-shadow: 0 4px 6px -2px rgba(0,0,0,0.02) !important;
+            }
+            
+            #recordTableBody td { 
+                border: none !important; 
+                padding: 0 !important; 
+                margin: 0 !important; 
+                width: auto !important;
+                box-shadow: none !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                font-size: 0.875rem !important;
+            }
+            #recordTableBody td::before { display: none !important; } 
+
+            /* 🚀 佈局拆合：第一行 (日期、類型、當日總工時) */
+            #recordTableBody td:nth-child(1) { /* 日期 */
+                width: 55% !important; font-weight: 700 !important; color: var(--dark) !important; font-size: 0.95rem !important;
+            }
+            #recordTableBody td:nth-child(1)::before { content: "📅 " !important; }
+
+            #recordTableBody td:nth-child(5) { /* 類型 */
+                width: 25% !important; justify-content: flex-start !important;
+            }
+
+            #recordTableBody td:nth-child(4) { /* 工時 */
+                width: 20% !important; justify-content: flex-end !important; text-align: right !important;
+            }
+            #recordTableBody td:nth-child(4) strong {
+                font-size: 1.05rem !important; color: var(--customs-green) !important; font-weight: 800 !important;
+            }
+
+            /* 🚀 佈局拆合：第二行 (上下班時間範圍、精巧操作按鈕) */
+            #recordTableBody td:nth-child(2) { /* 上班 */
+                margin-top: 6px !important; color: var(--gray) !important; font-weight: 600 !important;
+            }
+            #recordTableBody td:nth-child(2)::before { content: "⏰ " !important; }
+
+            #recordTableBody td:nth-child(3) { /* 下班 */
+                margin-top: 6px !important; color: var(--gray) !important; font-weight: 600 !important; margin-left: 2px !important; flex-grow: 1 !important;
+            }
+            #recordTableBody td:nth-child(3)::before { content: "~ " !important; color: var(--gray) !important; }
+
+            #recordTableBody td:nth-child(6) { /* 操作按鈕欄 */
+                margin-top: 6px !important; justify-content: flex-end !important; width: auto !important;
+            }
+            
+            /* 迷你膠囊化操作按鈕，精緻且完美保留點擊熱區 */
+            .action-btns { flex-direction: row !important; width: auto !important; gap: 6px !important; }
+            .btn-action-edit, .btn-delete { 
+                flex: none !important; width: auto !important;
+                padding: 4px 10px !important; font-size: 0.75rem !important; 
+                border-radius: 6px !important; font-weight: 700 !important;
+            }
         }
     </style>
 </head>
@@ -174,11 +281,13 @@
             </select>
         </div>
 
+        <div class="divider"></div>
+
         <label>第二步：在下方日曆點擊日期</label>
         <div class="cal-header">
             <button class="cal-btn" onclick="moveMonth(-1)">◀ 上個月</button>
             <button class="cal-btn btn-today" onclick="jumpToToday()">Today</button>
-            <span id="calendarTitle" style="font-weight: bold;"></span>
+            <span id="calendarTitle" style="font-weight: bold; color: var(--primary);"></span>
             <button class="cal-btn" onclick="moveMonth(1)">下個月 ▶</button>
         </div>
 
@@ -197,11 +306,11 @@
                 </select>
             </div>
             
-            <p style="font-size:0.85rem; color:var(--gray); margin-bottom:15px;">工時套用詳情：已選取 <span id="selectedDaysCount" style="color:var(--primary); font-weight:bold;">0</span> 個日期</p>
+            <p style="font-size:0.85rem; color:var(--gray); margin-bottom:15px; font-weight: 500;">工時套用詳情：已選取 <span id="selectedDaysCount" style="color:var(--primary); font-weight:bold;">0</span> 個日期</p>
             
             <div class="timeline-container">
                 <div id="segmentBlock1" class="segment-block">
-                    <h4 id="segTitle1" style="color: var(--primary); margin-bottom: 8px;">時間段 ①</h4>
+                    <h4 id="segTitle1" style="color: var(--primary);">時間段 ①</h4>
                     <div class="time-preview"><div>單段小計：<span id="lblDuration1" style="color: var(--primary);">--</span> 小時</div></div>
                     <div class="picker-row">
                         <div class="picker-group">
@@ -224,7 +333,7 @@
                 </div>
 
                 <div id="segmentBlock2" class="segment-block seg-2" style="display: none;">
-                    <h4>時間段 ②</h4>
+                    <h4 style="color: #2563eb;">時間段 ②</h4>
                     <div class="time-preview"><div>單段小計：<span id="lblDuration2" style="color: #2563eb;">--</span> 小時</div></div>
                     <div class="picker-row">
                         <div class="picker-group">
@@ -247,7 +356,7 @@
                 </div>
 
                 <div id="segmentBlock3" class="segment-block seg-3" style="display: none;">
-                    <h4>時間段 ③</h4>
+                    <h4 style="color: #7c3aed;">時間段 ③</h4>
                     <div class="time-preview"><div>單段小計：<span id="lblDuration3" style="color: #7c3aed;">--</span> 小時</div></div>
                     <div class="picker-row">
                         <div class="picker-group">
@@ -281,15 +390,15 @@
         <h2>📊 3. 工時統計看板 (<span id="summaryMonthLabel">當月</span>)</h2>
         
         <div class="summary-box">
-            <div class="stat-card month-total"><span class="stat-label">當月試算總工時</span><div class="stat-num"><span id="totalMonthHours">0.0</span>h</div></div>
-            <div class="stat-card required-hours"><span class="stat-label">應滿足工時</span><div class="stat-num"><span id="totalRequiredHours">0.0</span>h</div></div>
-            <div class="stat-card weekly-hours"><span class="stat-label">每周工作時數</span><div class="stat-num"><span id="avgWeeklyHours">0.0</span>h</div></div>
+            <div class="stat-card month-total"><span class="stat-label">當月試算總工時</span><div class="stat-num"><span id="totalMonthHours">0.00</span>h</div></div>
+            <div class="stat-card required-hours"><span class="stat-label">應滿足工時</span><div class="stat-num"><span id="totalRequiredHours">0.00</span>h</div></div>
+            <div class="stat-card weekly-hours"><span class="stat-label">每周工作時數</span><div class="stat-num"><span id="avgWeeklyHours">0.00</span>h</div></div>
             <div class="stat-card"><span class="stat-label">實質出勤</span><div class="stat-num"><span id="totalAllDays">0</span>天</div></div>
             <div class="stat-card official-days"><span class="stat-label">官方工作日</span><div class="stat-num"><span id="totalWorkingDays">0.0</span>天</div></div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h3 style="font-size:0.95rem; color:var(--gray);">📋 詳細工時明細紀錄</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="font-size:1rem; font-weight: 700; color:var(--primary);">📋 詳細工時明細紀錄</h3>
             <div class="action-btns">
                 <button class="btn-csv" onclick="exportToCSV()">📊 匯出為 CSV 報表</button>
                 <button class="cal-btn" style="font-size:0.75rem; background: #fff7ed; color:var(--warning); border:1px solid #fed7aa; padding: 6px 12px;" onclick="clearCurrentMonth()">清空當月</button>
@@ -561,10 +670,12 @@
         minSel.value = String(totalMinutes).padStart(2, '0');
     }
 
-    function startEdit(id) {
-        const target = records.find(r => r && r.id === id);
+    /* 🛠️ Bug 終極修復：微調模式改用不敗的「防失真三重复合密鑰」進行數據匹配 */
+    function startEdit(dateStr, startVal, endVal) {
+        const target = records.find(r => r && r.date === dateStr && Math.abs(r.startVal - startVal) < 0.001 && Math.abs(r.endVal - endVal) < 0.001);
         if (!target) return;
-        editingRecordId = id; selectedDates = [target.date];
+        editingRecordId = target.id; 
+        selectedDates = [target.date];
         document.getElementById('modalTitle').innerText = `✏️ 修改工時【${target.date}】`;
         document.getElementById('segmentCountWrapper').style.display = 'none';
         document.getElementById('segmentCount').value = "1";
@@ -628,12 +739,12 @@
             const newStartMs = baseDate.getTime() + currentFormSegments[0].startVal * 3600000;
             const newEndMs = baseDate.getTime() + currentFormSegments[0].endVal * 3600000;
             let hasCollision = records.some(r => {
-                if (!r || r.id === editingRecordId) return false;
+                if (!r || String(r.id) === String(editingRecordId)) return false;
                 const rParts = r.date.split('-'); const rBaseDate = createLocalDate(rParts[0], rParts[1], rParts[2]);
                 return Math.max(newStartMs, (rBaseDate.getTime() + r.startVal * 3600000)) < Math.min(newEndMs, (rBaseDate.getTime() + r.endVal * 3600000));
             });
             if (hasCollision) { alert("⚠️【修改失敗】該段工時與既存工時重疊！"); return; }
-            let targetObj = records.find(r => r.id === editingRecordId);
+            let targetObj = records.find(r => String(r.id) === String(editingRecordId));
             if (targetObj) { targetObj.startVal = currentFormSegments[0].startVal; targetObj.endVal = currentFormSegments[0].endVal; }
             saveToLocalStorage(); exitEditMode(); return;
         }
@@ -708,11 +819,17 @@
 
                 let formatTime = (ms) => {
                     let d = new Date(ms);
+                    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0 flights')}`;
+                };
+                
+                // 更精準的小時與分鐘抓取，防微秒溢出
+                let formatHMM = (ms) => {
+                    let d = new Date(ms);
                     return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
                 };
 
-                let startStr = formatTime(currentStartMs);
-                let endStr = formatTime(chunkEndMs);
+                let startStr = formatHMM(currentStartMs);
+                let endStr = formatHMM(chunkEndMs);
                 if (endStr === '00:00' && chunkEndMs === nextMidnight.getTime()) endStr = '24:00';
 
                 let itemDateStr = formatDateString(loopDateObj);
@@ -721,7 +838,8 @@
 
                 displayItems.push({
                     id: r.id, date: itemDateStr, originDate: r.date,
-                    start: startStr, end: endStr, hours: chunkHours, note: typeNote
+                    start: startStr, end: endStr, hours: chunkHours, note: typeNote,
+                    originStartVal: r.startVal, originEndVal: r.endVal  /* 💥 注入複合安全密鑰 */
                 });
                 currentStartMs = chunkEndMs;
             }
@@ -740,12 +858,13 @@
                 monthTotalHours += item.hours;
                 activeDaysInMonth.add(item.originDate); 
 
+                /* 🛠️ Bug 終極修補：將點擊傳參全面替換為字串安全字面量的複合密鑰，徹底擊碎浮點數精準度丟失問題 */
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${item.date}</td><td>${item.start}</td><td>${item.end}</td>
                     <td><strong>${item.hours.toFixed(2)}h</strong></td>
                     <td><span class="${item.note !== '正常班' ? 'split-badge' : ''}">${item.note}</span></td>
-                    <td><div class="action-btns"><button class="btn-action-edit" onclick="startEdit(${item.id})">修改</button><button class="btn-delete" onclick="deleteRecord(${item.id})">刪除</button></div></td>
+                    <td><div class="action-btns"><button class="btn-action-edit" onclick="startEdit('${item.originDate}', ${item.originStartVal}, ${item.originEndVal})">修改</button><button class="btn-delete" onclick="deleteRecord('${item.originDate}', ${item.originStartVal}, ${item.originEndVal})">刪除</button></div></td>
                 `;
                 tbody.appendChild(tr);
             }
@@ -753,7 +872,6 @@
 
         if (tbody.children.length === 0) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--gray); padding: 30px 10px;">本月尚無任何工時資料</td></tr>`;
 
-        // 🔒 固定回歸：前線關員標準的每週 44 小時法定工時標準
         let standardHoursPerWeek = 44;
         let avgWeeklyHours = officialWorkingDays > 0 ? (monthTotalHours / officialWorkingDays) * 5 : 0;
         let totalRequiredHours = (standardHoursPerWeek * officialWorkingDays) / 5;
@@ -798,14 +916,37 @@
 
     function formatDateString(dateObj) { return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`; }
     
-    function deleteRecord(id) { if(editingRecordId === id) exitEditMode(); records = records.filter(r => r && r.id !== id); saveToLocalStorage(); renderCalendar(); updateDashboard(); }
+    /* 🛠️ Bug 終極修補：刪除邏輯全面改用「安全複合定位鎖」，不管 ID 怎麼崩壞都能完美找到並清除！ */
+    function deleteRecord(dateStr, startVal, endVal) { 
+        const target = records.find(r => r && r.date === dateStr && Math.abs(r.startVal - startVal) < 0.001 && Math.abs(r.endVal - endVal) < 0.001);
+        if (target && String(editingRecordId) === String(target.id)) exitEditMode(); 
+        
+        records = records.filter(r => !(r && r.date === dateStr && Math.abs(r.startVal - startVal) < 0.001 && Math.abs(r.endVal - endVal) < 0.001)); 
+        saveToLocalStorage(); 
+        renderCalendar(); 
+        updateDashboard(); 
+    }
     
+    /* 🛠️ Bug 終極修補：清空當月優化，同時清除在當月顯示的跨月拆分班次 */
     function clearCurrentMonth() {
         const currentYearStr = currentDate.getFullYear();
         const currentMonthStr = String(currentDate.getMonth() + 1).padStart(2, '0');
         const targetYearMonth = `${currentYearStr}-${currentMonthStr}`;
         if(confirm(`確定要清空 ${currentYearStr}年${currentMonthStr}月 的所有工時紀錄嗎？`)) {
-            records = records.filter(r => r && r.date && !r.date.startsWith(targetYearMonth));
+            // 同時檢查原始登記日期以及可能跨月切碎的落點日期
+            records = records.filter(r => {
+                if (!r) return false;
+                if (r.date.startsWith(targetYearMonth)) return false;
+                
+                // 額外防禦驗證：檢查跨夜班次是否有任何一塊落在本月
+                const baseDate = createLocalDate(r.date.split('-')[0], r.date.split('-')[1], r.date.split('-')[2]);
+                const finalEndMs = baseDate.getTime() + r.endVal * 3600000;
+                const endDayObj = new Date(finalEndMs - 60000); // 扣除1分鐘防跨月邊界誤判
+                const endDayStr = formatDateString(endDayObj);
+                if (endDayStr.startsWith(targetYearMonth)) return false;
+                
+                return true;
+            });
             saveToLocalStorage();
             exitEditMode();
         }
