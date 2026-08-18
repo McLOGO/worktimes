@@ -48,11 +48,16 @@
         
         .w-full { width: 100%; }
 
-        .cal-header { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; gap: 8px; }
-        .cal-btn { background: var(--light-gray); border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.85rem; color: var(--primary); transition: 0.2s; border: 1px solid transparent; }
+        .cal-header { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; gap: 6px; flex-wrap: wrap; }
+        .cal-controls { display: flex; gap: 6px; align-items: center; }
+        .cal-btn { background: var(--light-gray); border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.85rem; color: var(--primary); transition: 0.2s; border: 1px solid transparent; }
         .cal-btn:hover { background: var(--primary-light); border-color: #bad7f2; }
         .btn-today { background: var(--primary-light); color: var(--primary); border: 1px solid #bad7f2; }
         .btn-today:hover { background: var(--primary); color: white; }
+        
+        /* 清空選擇按鈕特有視覺樣式 */
+        .btn-clear-sel { background: #fee2e2; color: var(--danger); border: 1px solid #fca5a5; }
+        .btn-clear-sel:hover { background: var(--danger); color: white; }
 
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
         
@@ -67,13 +72,11 @@
         .day.sat { background-color: var(--sat-bg); color: var(--sat-text); }
         .day.sun { background-color: var(--sun-bg); color: var(--sun-text); }
 
-        /* 澳門法定假期庫視覺樣式 */
         .day.gov-holiday { color: var(--danger); font-weight: bold; background: #fee2e2; }
         .day.gov-holiday::before { content: '假'; position: absolute; top: 2px; right: 4px; font-size: 0.65rem; color: var(--danger); font-weight: bold; }
         .day.gov-half-holiday { color: #b45309; font-weight: bold; background: #fef3c7; }
         .day.gov-half-holiday::before { content: '半'; position: absolute; top: 2px; right: 4px; font-size: 0.65rem; color: #b45309; font-weight: bold; }
 
-        /* 選取狀態最高優先級 */
         .day.selected { background: var(--primary) !important; color: white !important; font-weight: bold !important; box-shadow: 0 2px 6px rgba(27, 54, 93, 0.3); }
         .day.selected.gov-holiday::before { color: #fca5a5 !important; }
         .day.selected.gov-half-holiday::before { color: #fde047 !important; }
@@ -171,8 +174,12 @@
 
         <label>第二步：在下方日曆點擊日期</label>
         <div class="cal-header">
-            <button class="cal-btn" onclick="moveMonth(-1)">◀ 上個月</button>
-            <button class="cal-btn btn-today" onclick="jumpToToday()">Today</button>
+            <div class="cal-controls">
+                <button class="cal-btn" onclick="moveMonth(-1)">◀ 上個月</button>
+                <button class="cal-btn btn-today" onclick="jumpToToday()">Today</button>
+                <!-- 【全新增】清空選擇按鈕 -->
+                <button class="cal-btn btn-clear-sel" onclick="clearSelectedDates()">🧹 清空選擇</button>
+            </div>
             <span id="calendarTitle" style="font-weight: bold;"></span>
             <button class="cal-btn" onclick="moveMonth(1)">下個月 ▶</button>
         </div>
@@ -330,7 +337,6 @@
     ];
     const MACAU_HALF_DAYS_2026 = [ "2026-02-16", "2026-12-31" ];
 
-    // 🔥【全新升級】動態生成 0-23 小時與 00-59 分鐘（共60個）的完整選項下拉選單
     function initTimeDropdowns() {
         for (let i = 1; i <= 3; i++) {
             let startHour = document.getElementById('hourStart' + i);
@@ -341,14 +347,12 @@
             startHour.innerHTML = ''; endHour.innerHTML = '';
             startMin.innerHTML = ''; endMin.innerHTML = '';
 
-            // 生成 00 - 23 小時
             for (let h = 0; h < 24; h++) {
                 let optStr = String(h).padStart(2, '0');
                 startHour.options.add(new Option(optStr, h));
                 endHour.options.add(new Option(optStr, h));
             }
 
-            // 生成 00 - 59 分鐘
             for (let m = 0; m < 60; m++) {
                 let optStr = String(m).padStart(2, '0');
                 startMin.options.add(new Option(optStr, optStr));
@@ -482,6 +486,18 @@
         selectedDates = []; exitEditMode();
     }
 
+    // 【全新增】一鍵清空選取日期功能
+    function clearSelectedDates() {
+        selectedDates = [];
+        if (editingRecordId !== null) {
+            exitEditMode();
+        } else {
+            document.getElementById('rotationType').disabled = false;
+            renderCalendar();
+            toggleTimelineModal();
+        }
+    }
+
     function handleDateClick(year, month, day, dateStr) {
         if (editingRecordId !== null) return; 
         const rotation = document.getElementById('rotationType').value;
@@ -573,7 +589,6 @@
         }
     }
 
-    // 🔥【全新優化】支援任意 00-59 分鐘設定之精準數值還原
     function setSelectsFromOffset(prefix, index, val) {
         let daySel = document.getElementById('day' + prefix + index);
         let hourSel = document.getElementById('hour' + prefix + index);
