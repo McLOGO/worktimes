@@ -5,19 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=no">
     <title>工作時數試算系統</title>
     <style>
+        /* ==========================================================================
+           🎨 澳門海關專屬徽章色彩系統 (Deep Navy, Light Cyan, Sea Mint Green)
+           ========================================================================== */
         :root {
-            --primary: #1b365d;         /* 澳門海關徽章深藍 */
-            --primary-light: #e0f2fe;   /* 澳門海關清透淺藍 */
+            --primary: #1b365d;         /* 澳門海關徽章深藍 (主色調) */
+            --primary-light: #e0f2fe;   /* 澳門海關清透淺藍 (選取與高亮區) */
             --customs-green: #0fa573;   /* 澳門特區公共行政特徵淺綠 */
-            --customs-green-light: #e6f4ea;
+            --customs-green-light: #e6f4ea; /* 淺綠專用背景襯色 */
             --success: #0fa573;
-            --danger: #d32f2f;
-            --warning: #d97706;
+            --danger: #d32f2f;          /* 刪除與全天假期紅 */
+            --warning: #d97706;         /* 半天假橙黃 */
             --dark: #1e2937;
             --gray: #64748b;
-            --light-gray: #f1f5f9;
+            --light-gray: #f1f5f9;      /* 平滑底色 */
             --border: #cbd5e1;
             
+            /* 週末專用雅緻配色 */
             --sat-bg: #f0f7ff;
             --sat-text: #2b6cb0;
             --sun-bg: #fff5f5;
@@ -29,6 +33,7 @@
         body { background-color: #f4f7fa; color: var(--dark); padding: 20px; min-height: 100vh; }
         
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; max-width: 1350px; margin: 0 auto; }
+
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(27, 54, 93, 0.05); border: 1px solid var(--border); }
         
         h1 { text-align: center; margin-bottom: 25px; color: var(--primary); font-size: 1.75rem; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px; }
@@ -61,17 +66,21 @@
         
         .day.sat { background-color: var(--sat-bg); color: var(--sat-text); }
         .day.sun { background-color: var(--sun-bg); color: var(--sun-text); }
-        
-        .day.selected { background: var(--primary) !important; color: white !important; font-weight: bold; box-shadow: 0 2px 6px rgba(27, 54, 93, 0.3); }
+
+        /* 澳門法定假期庫視覺樣式 */
+        .day.gov-holiday { color: var(--danger); font-weight: bold; background: #fee2e2; }
+        .day.gov-holiday::before { content: '假'; position: absolute; top: 2px; right: 4px; font-size: 0.65rem; color: var(--danger); font-weight: bold; }
+        .day.gov-half-holiday { color: #b45309; font-weight: bold; background: #fef3c7; }
+        .day.gov-half-holiday::before { content: '半'; position: absolute; top: 2px; right: 4px; font-size: 0.65rem; color: #b45309; font-weight: bold; }
+
+        /* 選取狀態最高優先級 */
+        .day.selected { background: var(--primary) !important; color: white !important; font-weight: bold !important; box-shadow: 0 2px 6px rgba(27, 54, 93, 0.3); }
+        .day.selected.gov-holiday::before { color: #fca5a5 !important; }
+        .day.selected.gov-half-holiday::before { color: #fde047 !important; }
         
         .day.has-record { position: relative; }
         .day.has-record::after { content: ''; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; background: var(--primary); border-radius: 50%; }
         .day.selected.has-record::after { background: white; }
-
-        .day.gov-holiday { color: var(--danger) !important; font-weight: bold; background: #fee2e2 !important; }
-        .day.gov-holiday::before { content: '假'; position: absolute; top: 2px; right: 4px; font-size: 0.65rem; color: var(--danger); font-weight: bold; }
-        .day.gov-half-holiday { color: #b45309 !important; font-weight: bold; background: #fef3c7 !important; }
-        .day.gov-half-holiday::before { content: '半'; position: absolute; top: 2px; right: 4px; font-size: 0.65rem; color: #b45309; font-weight: bold; }
 
         .info-placeholder { background: #fffbeb; border: 1px dashed #fef3c7; color: #b45309; padding: 15px; border-radius: 8px; text-align: center; font-size: 0.9rem; margin-top: 20px; line-height: 1.5; }
         .timeline-modal { background: var(--primary-light); border: 2px solid var(--primary); padding: 20px; border-radius: 10px; margin-top: 20px; display: none; }
@@ -145,6 +154,7 @@
 <h1>🛡️ 工作時數試算系統</h1>
 
 <div class="dashboard">
+    <!-- 左側：排班控制面板 -->
     <div class="card">
         <h2>📅 1. 選擇排班與日期</h2>
         
@@ -170,6 +180,7 @@
         <div class="calendar-grid" id="calendarGrid"></div>
         <div class="info-placeholder" id="infoPlaceholder">💡 請先在上方日曆「點擊選取日期」，系統將會自動彈出時間軸輸入界面！</div>
 
+        <!-- 時間軸彈出層 -->
         <div class="timeline-modal" id="timelineModal">
             <h2 id="modalTitle">⏰ 2. 設定時間範圍</h2>
             
@@ -185,6 +196,7 @@
             <p style="font-size:0.85rem; color:var(--gray); margin-bottom:15px;">工時套用詳情：已選取 <span id="selectedDaysCount" style="color:var(--primary); font-weight:bold;">0</span> 個日期</p>
             
             <div class="timeline-container">
+                <!-- 時間段 ① -->
                 <div id="segmentBlock1" class="segment-block">
                     <h4 id="segTitle1" style="color: var(--primary); margin-bottom: 8px;">時間段 ①</h4>
                     <div class="time-preview"><div>單段小計：<span id="lblDuration1" style="color: var(--primary);">--</span> 小時</div></div>
@@ -194,7 +206,7 @@
                             <div class="select-combo">
                                 <select id="dayStart1" onchange="syncTimePickers()"><option value="prev">前一日</option><option value="current" selected>當日</option><option value="next">翌日</option></select>
                                 <select id="hourStart1" onchange="syncTimePickers()"></select><span>:</span>
-                                <select id="minStart1" onchange="syncTimePickers()"><option value="00">00</option><option value="30">30</option></select>
+                                <select id="minStart1" onchange="syncTimePickers()"></select>
                             </div>
                         </div>
                         <div class="picker-group">
@@ -202,12 +214,13 @@
                             <div class="select-combo">
                                 <select id="dayEnd1" onchange="syncTimePickers()"><option value="prev">前一日</option><option value="current" selected>當日</option><option value="next">翌日</option></select>
                                 <select id="hourEnd1" onchange="syncTimePickers()"></select><span>:</span>
-                                <select id="minEnd1" onchange="syncTimePickers()"><option value="00">00</option><option value="30">30</option></select>
+                                <select id="minEnd1" onchange="syncTimePickers()"></select>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- 時間段 ② -->
                 <div id="segmentBlock2" class="segment-block seg-2" style="display: none;">
                     <h4>時間段 ②</h4>
                     <div class="time-preview"><div>單段小計：<span id="lblDuration2" style="color: #2563eb;">--</span> 小時</div></div>
@@ -217,7 +230,7 @@
                             <div class="select-combo">
                                 <select id="dayStart2" onchange="syncTimePickers()"><option value="prev">前一日</option><option value="current" selected>當日</option><option value="next">翌日</option></select>
                                 <select id="hourStart2" onchange="syncTimePickers()"></select><span>:</span>
-                                <select id="minStart2" onchange="syncTimePickers()"><option value="00">00</option><option value="30">30</option></select>
+                                <select id="minStart2" onchange="syncTimePickers()"></select>
                             </div>
                         </div>
                         <div class="picker-group">
@@ -225,12 +238,13 @@
                             <div class="select-combo">
                                 <select id="dayEnd2" onchange="syncTimePickers()"><option value="prev">前一日</option><option value="current" selected>當日</option><option value="next">翌日</option></select>
                                 <select id="hourEnd2" onchange="syncTimePickers()"></select><span>:</span>
-                                <select id="minEnd2" onchange="syncTimePickers()"><option value="00">00</option><option value="30">30</option></select>
+                                <select id="minEnd2" onchange="syncTimePickers()"></select>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- 時間段 ③ -->
                 <div id="segmentBlock3" class="segment-block seg-3" style="display: none;">
                     <h4>時間段 ③</h4>
                     <div class="time-preview"><div>單段小計：<span id="lblDuration3" style="color: #7c3aed;">--</span> 小時</div></div>
@@ -240,7 +254,7 @@
                             <div class="select-combo">
                                 <select id="dayStart3" onchange="syncTimePickers()"><option value="prev">前一日</option><option value="current" selected>當日</option><option value="next">翌日</option></select>
                                 <select id="hourStart3" onchange="syncTimePickers()"></select><span>:</span>
-                                <select id="minStart3" onchange="syncTimePickers()"><option value="00">00</option><option value="30">30</option></select>
+                                <select id="minStart3" onchange="syncTimePickers()"></select>
                             </div>
                         </div>
                         <div class="picker-group">
@@ -248,7 +262,7 @@
                             <div class="select-combo">
                                 <select id="dayEnd3" onchange="syncTimePickers()"><option value="prev">前一日</option><option value="current" selected>當日</option><option value="next">翌日</option></select>
                                 <select id="hourEnd3" onchange="syncTimePickers()"></select><span>:</span>
-                                <select id="minEnd3" onchange="syncTimePickers()"><option value="00">00</option><option value="30">30</option></select>
+                                <select id="minEnd3" onchange="syncTimePickers()"></select>
                             </div>
                         </div>
                     </div>
@@ -262,6 +276,7 @@
         </div>
     </div>
 
+    <!-- 右側：工時試算看板 -->
     <div class="card">
         <h2>📊 3. 工時統計看板 (<span id="summaryMonthLabel">當月</span>)</h2>
         
@@ -306,40 +321,44 @@
     let currentDate = new Date(); 
     let holidayDb = { holidays: [], halfHolidays: [] };
 
-    // 💡【全面補齊】2026 年澳門官方公眾假期及補假完整清單（包含 12/22 冬至）
     const MACAU_HOLIDAYS_2026 = [
-        "2026-01-01", // 元旦
-        "2026-02-17", "2026-02-18", "2026-02-19", // 農曆正月初一至初三
-        "2026-04-03", // 耶穌受難日
-        "2026-04-06", // 復活節前日補假
-        "2026-04-07", // 清明節補假
-        "2026-05-01", // 勞動節
-        "2026-05-25", // 佛誕節補假
-        "2026-06-19", // 端午節
-        "2026-09-28", // 中秋節翌日補假
-        "2026-10-01", "2026-10-02", // 國慶日及翌日
-        "2026-10-19", // 重陽節補假
-        "2026-11-02", // 追思節
-        "2026-12-08", // 聖母無原罪瞻禮
-        "2026-12-21", // 澳門特區成立紀念日補假
-        "2026-12-22", // 💡 冬至（已完美補上）
-        "2026-12-24", "2026-12-25"  // 聖誕節前日及聖誕節
+        "2026-01-01", "2026-02-17", "2026-02-18", "2026-02-19", 
+        "2026-04-03", "2026-04-06", "2026-04-07", "2026-05-01", 
+        "2026-05-25", "2026-06-19", "2026-09-28", "2026-10-01", 
+        "2026-10-02", "2026-10-19", "2026-11-02", "2026-12-08", 
+        "2026-12-21", "2026-12-22", "2026-12-24", "2026-12-25"
     ];
     const MACAU_HALF_DAYS_2026 = [ "2026-02-16", "2026-12-31" ];
 
-    function initHourDropdowns() {
+    // 🔥【全新升級】動態生成 0-23 小時與 00-59 分鐘（共60個）的完整選項下拉選單
+    function initTimeDropdowns() {
         for (let i = 1; i <= 3; i++) {
-            let startSelect = document.getElementById('hourStart' + i);
-            let endSelect = document.getElementById('hourEnd' + i);
-            startSelect.innerHTML = ''; endSelect.innerHTML = '';
+            let startHour = document.getElementById('hourStart' + i);
+            let endHour = document.getElementById('hourEnd' + i);
+            let startMin = document.getElementById('minStart' + i);
+            let endMin = document.getElementById('minEnd' + i);
+
+            startHour.innerHTML = ''; endHour.innerHTML = '';
+            startMin.innerHTML = ''; endMin.innerHTML = '';
+
+            // 生成 00 - 23 小時
             for (let h = 0; h < 24; h++) {
                 let optStr = String(h).padStart(2, '0');
-                startSelect.options.add(new Option(optStr, h));
-                endSelect.options.add(new Option(optStr, h));
+                startHour.options.add(new Option(optStr, h));
+                endHour.options.add(new Option(optStr, h));
             }
-            if(i==1) { startSelect.value = 9; endSelect.value = 13; }
-            if(i==2) { startSelect.value = 14; endSelect.value = 18; }
-            if(i==3) { startSelect.value = 19; endSelect.value = 22; }
+
+            // 生成 00 - 59 分鐘
+            for (let m = 0; m < 60; m++) {
+                let optStr = String(m).padStart(2, '0');
+                startMin.options.add(new Option(optStr, optStr));
+                endMin.options.add(new Option(optStr, optStr));
+            }
+
+            if(i==1) { startHour.value = 9; endHour.value = 13; }
+            if(i==2) { startHour.value = 14; endHour.value = 18; }
+            if(i==3) { startHour.value = 19; endHour.value = 22; }
+            startMin.value = "00"; endMin.value = "00";
         }
     }
 
@@ -360,7 +379,6 @@
         return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 0, 0, 0, 0);
     }
 
-    // 💡【自動更新防線升級】多代理容錯（Multi-Proxy Fallback）及內容防偽解析
     async function fetchMacauHolidaysAutomatically() {
         const targetUrl = 'https://www.gov.mo/zh-hant/public-holidays/ical/';
         const proxies = [
@@ -373,8 +391,6 @@
                 const response = await fetch(proxy);
                 if (!response.ok) continue;
                 const icsText = await response.text();
-                
-                // 驗證下載的內容是否為合法 iCal 日曆
                 if (!icsText.includes("BEGIN:VCALENDAR")) continue;
 
                 const lines = icsText.split(/\r?\n/);
@@ -400,7 +416,7 @@
                     holidayDb = { holidays, halfHolidays };
                     localStorage.setItem('macau_holidays_auto_cache', JSON.stringify(holidayDb));
                     renderCalendar(); updateDashboard();
-                    break; // 成功解析即可退出
+                    break;
                 }
             } catch (e) {}
         }
@@ -557,6 +573,7 @@
         }
     }
 
+    // 🔥【全新優化】支援任意 00-59 分鐘設定之精準數值還原
     function setSelectsFromOffset(prefix, index, val) {
         let daySel = document.getElementById('day' + prefix + index);
         let hourSel = document.getElementById('hour' + prefix + index);
@@ -565,9 +582,13 @@
         if (val < 0) { dayOffset = -24; daySel.value = "prev"; }
         else if (val >= 24) { dayOffset = 24; daySel.value = "next"; }
         else { dayOffset = 0; daySel.value = "current"; }
+        
         let relHour = val - dayOffset;
-        hourSel.value = Math.floor(relHour);
-        minSel.value = (relHour % 1) === 0.5 ? "30" : "00";
+        let totalMins = Math.round(relHour * 60);
+        let h = Math.floor(totalMins / 60);
+        let m = totalMins % 60;
+        hourSel.value = h;
+        minSel.value = String(m).padStart(2, '0');
     }
 
     function startEdit(id) {
@@ -795,7 +816,7 @@
     function clearAll() { if(confirm("確定要清空所有歷史工時紀錄嗎？")) { records = []; saveToLocalStorage(); exitEditMode(); } }
     function saveToLocalStorage() { localStorage.setItem('work_records', JSON.stringify(records)); }
 
-    initHourDropdowns();
+    initTimeDropdowns();
     renderCalendar();
     updateDashboard();
     fetchMacauHolidaysAutomatically();
