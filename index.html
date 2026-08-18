@@ -45,19 +45,49 @@
         select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; background: white; transition: all 0.2s; -webkit-appearance: none; appearance: none; color: var(--dark); }
         select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
         select:disabled { background: #e2e8f0; color: #64748b; cursor: not-allowed; border-color: #cbd5e1; }
-        
-        .w-full { width: 100%; }
 
-        .cal-header { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; gap: 6px; flex-wrap: wrap; }
-        .cal-controls { display: flex; gap: 6px; align-items: center; }
-        .cal-btn { background: var(--light-gray); border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.85rem; color: var(--primary); transition: 0.2s; border: 1px solid transparent; }
+        /* 🔥【優化工具列】獨立按鈕列（上方）與年月導覽列（下方） */
+        .cal-toolbar {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin: 10px 0 18px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .cal-action-bar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed var(--border);
+        }
+        .cal-nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cal-title-text {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .cal-btn { background: white; border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.85rem; color: var(--primary); transition: 0.2s; }
         .cal-btn:hover { background: var(--primary-light); border-color: #bad7f2; }
+        
+        /* 功能按鈕視覺分系 */
         .btn-today { background: var(--primary-light); color: var(--primary); border: 1px solid #bad7f2; }
         .btn-today:hover { background: var(--primary); color: white; }
         
-        /* 清空選擇按鈕特有視覺樣式 */
-        .btn-clear-sel { background: #fee2e2; color: var(--danger); border: 1px solid #fca5a5; }
-        .btn-clear-sel:hover { background: var(--danger); color: white; }
+        .btn-clear-sel { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
+        .btn-clear-sel:hover { background: #feb2b2; color: #9b2c2c; }
+
+        .btn-clear-all { background: #fee2e2; color: var(--danger); border: 1px solid #fca5a5; }
+        .btn-clear-all:hover { background: var(--danger); color: white; }
 
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
         
@@ -65,9 +95,9 @@
         .weekday.sat { color: var(--sat-text); background-color: var(--sat-bg); border-radius: 4px; }
         .weekday.sun { color: var(--sun-text); background-color: var(--sun-bg); border-radius: 4px; }
         
-        .day { padding: 14px 0; border-radius: 8px; cursor: pointer; font-size: 0.95rem; user-select: none; transition: 0.2s; background: var(--light-gray); position: relative; min-height: 54px; display: flex; align-items: center; justify-content: center; color: var(--dark); }
+        .day { padding: 14px 0; border-radius: 8px; cursor: pointer; font-size: 0.95rem; user-select: none; transition: 0.2s; background: var(--light-gray); position: relative; min-height: 54px; display: flex; align-items: center; justify-content: center; color: var(--dark); border: 2px solid transparent; }
         .day:hover { background: var(--primary-light); color: var(--primary); font-weight: bold; }
-        .day.empty { background: transparent; cursor: default; }
+        .day.empty { background: transparent; cursor: default; border: none; }
         
         .day.sat { background-color: var(--sat-bg); color: var(--sat-text); }
         .day.sun { background-color: var(--sun-bg); color: var(--sun-text); }
@@ -77,13 +107,30 @@
         .day.gov-half-holiday { color: #b45309; font-weight: bold; background: #fef3c7; }
         .day.gov-half-holiday::before { content: '半'; position: absolute; top: 2px; right: 4px; font-size: 0.65rem; color: #b45309; font-weight: bold; }
 
-        .day.selected { background: var(--primary) !important; color: white !important; font-weight: bold !important; box-shadow: 0 2px 6px rgba(27, 54, 93, 0.3); }
+        .day.has-record { 
+            border: 2px solid var(--customs-green) !important; 
+            background-color: var(--customs-green-light) !important;
+            color: #065f46 !important;
+            font-weight: bold;
+        }
+        .day.has-record::after { 
+            content: '✓'; 
+            position: absolute; 
+            bottom: 2px; 
+            right: 4px; 
+            font-size: 0.75rem; 
+            color: var(--customs-green); 
+            font-weight: 900; 
+            line-height: 1;
+        }
+
+        .day.gov-holiday.has-record { background-color: #fef2f2 !important; }
+        .day.gov-half-holiday.has-record { background-color: #fffbeb !important; }
+
+        .day.selected { background: var(--primary) !important; color: white !important; font-weight: bold !important; box-shadow: 0 2px 6px rgba(27, 54, 93, 0.3); border-color: var(--primary) !important; }
         .day.selected.gov-holiday::before { color: #fca5a5 !important; }
         .day.selected.gov-half-holiday::before { color: #fde047 !important; }
-        
-        .day.has-record { position: relative; }
-        .day.has-record::after { content: ''; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; background: var(--primary); border-radius: 50%; }
-        .day.selected.has-record::after { background: white; }
+        .day.selected.has-record::after { color: #a7f3d0 !important; }
 
         .info-placeholder { background: #fffbeb; border: 1px dashed #fef3c7; color: #b45309; padding: 15px; border-radius: 8px; text-align: center; font-size: 0.9rem; margin-top: 20px; line-height: 1.5; }
         .timeline-modal { background: var(--primary-light); border: 2px solid var(--primary); padding: 20px; border-radius: 10px; margin-top: 20px; display: none; }
@@ -142,6 +189,10 @@
             .stat-card { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; text-align: left; }
             .stat-label { margin-bottom: 0; font-size: 0.85rem; }
             
+            .cal-toolbar { padding: 10px; }
+            .cal-action-bar { justify-content: stretch; }
+            .cal-action-bar button { flex: 1; text-align: center; font-size: 0.8rem; padding: 8px 4px; }
+
             .picker-group { width: 100%; }
             .select-combo { width: 100%; display: grid; grid-template-columns: 2fr 1.2fr auto 1.2fr; gap: 6px; align-items: center; }
             .select-combo select { width: 100%; padding: 12px 4px; font-size: 0.95rem; text-align: center; }
@@ -173,15 +224,19 @@
         </div>
 
         <label>第二步：在下方日曆點擊日期</label>
-        <div class="cal-header">
-            <div class="cal-controls">
-                <button class="cal-btn" onclick="moveMonth(-1)">◀ 上個月</button>
+        
+        <!-- 🔥【功能按鈕欄置頂整合區】位於第二步標籤與年月標題之間 -->
+        <div class="cal-toolbar">
+            <div class="cal-action-bar">
                 <button class="cal-btn btn-today" onclick="jumpToToday()">Today</button>
-                <!-- 【全新增】清空選擇按鈕 -->
                 <button class="cal-btn btn-clear-sel" onclick="clearSelectedDates()">🧹 清空選擇</button>
+                <button class="cal-btn btn-clear-all" onclick="clearAll()">🗑️ 清空工時明細紀錄</button>
             </div>
-            <span id="calendarTitle" style="font-weight: bold;"></span>
-            <button class="cal-btn" onclick="moveMonth(1)">下個月 ▶</button>
+            <div class="cal-nav-bar">
+                <button class="cal-btn" onclick="moveMonth(-1)">◀ 上個月</button>
+                <span id="calendarTitle" class="cal-title-text"></span>
+                <button class="cal-btn" onclick="moveMonth(1)">下個月 ▶</button>
+            </div>
         </div>
 
         <div class="calendar-grid" id="calendarGrid"></div>
@@ -299,7 +354,6 @@
             <h3 style="font-size:0.95rem; color:var(--gray);">📋 詳細工時明細紀錄</h3>
             <div class="action-btns">
                 <button class="btn-csv" onclick="exportToCSV()">📊 匯出為 CSV 報表</button>
-                <button class="cal-btn" style="font-size:0.75rem; color:var(--danger); padding: 6px 12px;" onclick="clearAll()">清空全部</button>
             </div>
         </div>
         
@@ -486,7 +540,6 @@
         selectedDates = []; exitEditMode();
     }
 
-    // 【全新增】一鍵清空選取日期功能
     function clearSelectedDates() {
         selectedDates = [];
         if (editingRecordId !== null) {
@@ -499,7 +552,16 @@
     }
 
     function handleDateClick(year, month, day, dateStr) {
-        if (editingRecordId !== null) return; 
+        const existingRecord = records.find(r => r && r.date === dateStr);
+        if (existingRecord) {
+            startEdit(existingRecord.id);
+            return;
+        }
+
+        if (editingRecordId !== null) {
+            exitEditMode();
+        }
+
         const rotation = document.getElementById('rotationType').value;
 
         if (rotation === 'custom') {
@@ -828,7 +890,15 @@
 
     function formatDateString(dateObj) { return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`; }
     function deleteRecord(id) { if(editingRecordId === id) exitEditMode(); records = records.filter(r => r && r.id !== id); saveToLocalStorage(); renderCalendar(); updateDashboard(); }
-    function clearAll() { if(confirm("確定要清空所有歷史工時紀錄嗎？")) { records = []; saveToLocalStorage(); exitEditMode(); } }
+    
+    function clearAll() {
+        if(confirm("確定要清空所有歷史工時紀錄嗎？")) {
+            records = [];
+            saveToLocalStorage();
+            exitEditMode();
+        }
+    }
+    
     function saveToLocalStorage() { localStorage.setItem('work_records', JSON.stringify(records)); }
 
     initTimeDropdowns();
